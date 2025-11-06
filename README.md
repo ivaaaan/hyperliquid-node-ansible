@@ -27,14 +27,29 @@ Visor configures a systemd service that will run the node. You can customize the
 
 ## Roles
 
+To run a specific role specify its playbook: 
+
+```
+ansible-playbook playbooks/<role>.yml -i hosts.yml
+```
+
 ### `base`
 
 Base role installs necessary packages and dependencies for the Hyperliquid node. It will also disable IPv6 on the system and open 4001 and 4002 ports in the firewall which are required for the node to function properly.
 
 
+### `users`
+
+Users role creates a dedicated user and group for running the Hyperliquid node.
+
 ### `node`
 
 Node role downloads and configures the Hyperliquid node binary. It sets up the necessary directories and configuration files based on the provided variables, and starts systemd service to run the node.
+
+### `pruner`
+
+Pruner role sets up a cron job to periodically prune old data from the Hyperliquid node to save disk space. The pruning frequency and retention period can be configured via variables.
+
 
 ## Usage
 
@@ -47,12 +62,16 @@ You will need to install the `ansible.posix` collection if you don't have it alr
 Run the playbook with the following command, replacing the variables with your own values:
 
 ```bash
-ansible-playbook node.yml -i hosts.yml
+ansible-playbook playbooks/hl-node.yml -i hosts.yml
 ```
+
+### Running specific role
+
+
 
 ## TODO 
 
-- [ ] cron job to prune old data 
+- [x] cron job to prune old data 
 - [ ] nginx service to serve info endpoint
 - [ ] monitoring with prometheus
 
