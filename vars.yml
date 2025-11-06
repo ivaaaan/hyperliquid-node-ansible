@@ -25,5 +25,5 @@ visor:
 pruner:
   data_path: /home/{{ node_user }}/hl/data
   enabled: true
-  cron_schedule: "0 * * * *"  # every day at midnight
+  cron_schedule: "0 * * * *"  
   retain_hours: 1
