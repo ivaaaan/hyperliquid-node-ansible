@@ -1,0 +1,25 @@
+node_user: hyperliquid
+
+chain: Mainnet # Options: Mainnet, Testnet
+
+testnet_visor_binary_url: https://binaries.hyperliquid-testnet.xyz/Testnet/hl-visor
+mainnet_visor_binary_url: https://binaries.hyperliquid.xyz/Mainnet/hl-visor
+pub_key_url: https://raw.githubusercontent.com/hyperliquid-dex/node/refs/heads/main/pub_key.asc
+mainnet_signature_url: https://binaries.hyperliquid.xyz/Mainnet/hl-visor.asc
+testnet_signature_url: https://binaries.hyperliquid-testnet.xyz/Testnet/hl-visor.asc
+
+gossip_config:
+  download_peers: true # get list of recent active peers from HL API. overrides 'ip' list below if true
+  try_new_peers: true
+  ip:
+    - 157.90.207.92
+    - 57.129.140.247
+    - 91.134.71.237
+
+
+service:
+  exec_start: |
+    /home/{{node_user}}/hl-visor run-non-validator --write-fills
+  restart_sec: 5
+
+    
