@@ -17,7 +17,7 @@ gossip_config:
     - 91.134.71.237
 
 
-service:
+visor:
   exec_start: |
     /home/{{node_user}}/hl-visor run-non-validator --write-fills
   restart_sec: 5
