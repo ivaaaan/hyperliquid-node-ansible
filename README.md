@@ -21,6 +21,18 @@ Configuration variables are defined in the `vars.yml` file. Feel free to overrid
 curl -X POST --header "Content-Type: application/json" --data '{ "type": "gossipRootIps" }' https://api.hyperliquid.xyz/info
 ```
 
+## Roles
+
+### base
+
+Base role installs necessary packages and dependencies for the Hyperliquid node. It will also disable IPv6 on the system and open 4001 and 4002 ports in the firewall which are required for the node to function properly.
+
+
+### node
+
+Node role downloads and configures the Hyperliquid node binary. It sets up the necessary directories and configuration files based on the provided variables, and starts systemd service to run the node.
+
+
 
 ### `visor`
 
