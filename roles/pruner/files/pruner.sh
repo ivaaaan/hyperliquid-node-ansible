@@ -103,39 +103,23 @@ for dir in "${EXCLUDES[@]}"; do
   PRUNE_ARGS+=( -path "${DATA_PATH%/}/${dir}" -prune -o )
 done
 
-# Convert hours to minutes (find uses minutes granularity)
 MINS=$(( RETAIN_HOURS * 60 ))
 
-vlog "Computed retention in minutes: ${MINS}"
-vlog "Constructed prune args: ${PRUNE_ARGS[*]:-<none>}"
-
-# Find the files that would be deleted
-if (( DRY_RUN )); then
-  # Show list
-  log "DRY-RUN: Listing files older than ${RETAIN_HOURS}h that would be removed..."
-  # shellcheck disable=SC2016
+log "Starting pruning process…"
+# Using -print0 | xargs -0 for robustness with spaces/newlines
+# shellcheck disable=SC2016
+deleted_count=$(
   find "${DATA_PATH}" -mindepth 1 \
-    "${PRUNE_ARGS[@]}" -type f -mmin +"${MINS}" -print 2>/dev/null | tee /dev/null | wc -l | {
-      read -r n; log "DRY-RUN: ${n} files would be removed."
-    }
-else
-  # Delete them
-  log "Starting pruning process…"
-  # Using -print0 | xargs -0 for robustness with spaces/newlines
-  # shellcheck disable=SC2016
-  deleted_count=$(
-    find "${DATA_PATH}" -mindepth 1 \
-      "${PRUNE_ARGS[@]}" -type f -mmin +"${MINS}" -print0 2>/dev/null \
-      | tee >( (( VERBOSE )) && xargs -0 -I{} echo "$(date '+%Y-%m-%d %H:%M:%S'): deleting -> {}" >> "$log_fd" || cat >/dev/null ) \
-      | xargs -0 -r rm -f -- 2>/dev/null \
-      ; # xargs doesn't report count, so recompute after
-    # We cannot capture count directly; compute delta later
-  )
+    "${PRUNE_ARGS[@]}" -type f -mmin +"${MINS}" -print0 2>/dev/null \
+    | tee >( (( VERBOSE )) && xargs -0 -I{} echo "$(date '+%Y-%m-%d %H:%M:%S'): deleting -> {}" >> "$log_fd" || cat >/dev/null ) \
+    | xargs -0 -r rm -f -- 2>/dev/null \
+    ; # xargs doesn't report count, so recompute after
+  # We cannot capture count directly; compute delta later
+)
 
-  # Snapshot after
-  size_after=$(du -sh -- "${DATA_PATH}" | cut -f1 || echo "n/a")
-  files_after=$(find "${DATA_PATH}" -type f 2>/dev/null | wc -l | awk '{print $1}')
-  removed=$(( files_before - files_after ))
-  log "Size after pruning: ${size_after} with ${files_after} files"
-  log "Pruning completed. Reduced from ${size_before} to ${size_after} (${removed} files removed)."
-fi
+# Snapshot after
+size_after=$(du -sh -- "${DATA_PATH}" | cut -f1 || echo "n/a")
+files_after=$(find "${DATA_PATH}" -type f 2>/dev/null | wc -l | awk '{print $1}')
+removed=$(( files_before - files_after ))
+log "Size after pruning: ${size_after} with ${files_after} files"
+log "Pruning completed. Reduced from ${size_before} to ${size_after} (${removed} files removed)."
