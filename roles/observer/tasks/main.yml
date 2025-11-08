@@ -1,0 +1,107 @@
+- name: Create Folder /srv/prometheus if not exist
+  file:
+    path: /srv/prometheus
+    mode: 0755
+    state: directory
+
+- name: Create Folder /srv/grafana if not exist
+  file:
+    path: /srv/grafana
+    mode: 0755
+    state: directory
+
+- name: Create Folder /srv/alertmanager if not exist
+  file:
+    path: /srv/alertmanager
+    mode: 0755
+    state: directory
+
+- name: Create prometheus configuration file
+  copy:
+    dest: /srv/prometheus/prometheus.yml
+    src: files/prometheus/main.yml
+    mode: 0644
+
+- name: Create prometheus alert configuration file
+  copy:
+    dest: /srv/prometheus/prometheus_alerts_rules.yml
+    src: files/prometheus/main.yml
+    mode: 0644
+
+- name: Create grafana configuration files
+  copy:
+    dest: /srv/
+    src: grafana
+    mode: 0644
+
+- name: Create alertmanager configuration file
+  template:
+    dest: /srv/alertmanager/alertmanager.yml
+    src: templates/alertmanager/main.yml.j2
+    mode: 0644
+
+
+- name: Create monitoring network
+  docker_network:
+    name: monitoring
+
+- name: Create Prometheus container
+  docker_container:
+    name: prometheus
+    image: prom/prometheus:{{ prometheus_version }}
+    restart_policy: always
+    networks:
+      - name: monitoring
+    volumes:
+      - /srv/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_main_data:/prometheus
+    command: >
+      --config.file=/etc/prometheus/prometheus.yml
+
+- name: Create Alertmanager container (internal only)
+  docker_container:
+    name: alertmanager
+    image: prom/alertmanager
+    restart_policy: always
+    networks:
+      - name: monitoring
+    volumes:
+      - alertmanager-data:/data
+      - /srv/alertmanager:/config
+    command: >
+      --config.file=/config/alertmanager.yml 
+      --log.level=debug
+
+- name: Create Grafana container (public UI + internal network)
+  docker_container:
+    name: grafana
+    image: grafana/grafana:{{ grafana_version }}
+    restart_policy: always
+    networks:
+      - name: monitoring
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - /srv/grafana/provisioning:/etc/grafana/provisioning
+      - /srv/grafana/dashboards:/var/lib/grafana/dashboards
+    published_ports:
+      - "3000:3000"
+    env:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+
+- name: Create node-exporter container
+  docker_container:
+    name: node-exporter
+    image: quay.io/prometheus/node-exporter:latest
+    restart_policy: always
+    networks:
+      - name: monitoring
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro,rslave
+    command: >
+      --path.procfs=/host/proc
+      --path.sysfs=/host/sys
+      --path.rootfs=/rootfs
+      --collector.filesystem.mount-points-exclude='^/(sys|proc|dev|host|etc)($|/)'
+

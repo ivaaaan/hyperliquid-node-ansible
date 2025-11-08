@@ -27,5 +27,5 @@
       --retain-hours {{ pruner.retain_hours }}
       {% for d in pruner.excludes|default([]) -%}
       --exclude {{ d | quote }}
-      {%- endfor %}
+      {%- endfor %} >/dev/null 2>&1
 

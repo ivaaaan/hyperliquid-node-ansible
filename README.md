@@ -56,7 +56,9 @@ Pruner role sets up a cron job to periodically prune old data from the Hyperliqu
 You will need to install the `ansible.posix` collection if you don't have it already:
 
 ```bash
- ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install community.crypto
+ansible-galaxy collection install geerlingguy.docker
 ```
 
 Run the playbook with the following command, replacing the variables with your own values:
