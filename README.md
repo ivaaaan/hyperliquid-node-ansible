@@ -51,6 +51,10 @@ Node role downloads and configures the Hyperliquid node binary. It sets up the n
 Pruner role sets up a cron job to periodically prune old data from the Hyperliquid node to save disk space. The pruning frequency and retention period can be configured via variables.
 
 
+### `observer`
+
+Observer role deploys Grafana, Prometheus, and Node Exporter using Docker to monitor the server health. Grafana port is exposed on 3000, so if you need additional security consider setting up a reverse proxy with authentication.
+
 ## Usage
 
 You will need to install the `ansible.posix` collection if you don't have it already:
