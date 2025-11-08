@@ -1,0 +1,4 @@
+---
+prometheus_version: v3.7.3
+grafana_version: 12.2-ubuntu
+alertmanager_version: v0.29.0
